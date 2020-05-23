@@ -10,8 +10,4 @@ Installation
 ------------
 Requirements: Python 3.5, pybind11
 
-**On Unix (Linux, OS X)**
-
- - clone this repository
- - `pip install ./python_example`
-
+`pip install git+https://github.com/GreenleafLab/matcha.git`
