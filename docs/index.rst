@@ -34,6 +34,7 @@ What Matcha doesn't do
 -----------------------
 Matcha aims to provide simple, fast, and flexible DNA barcode matching in python.
 However, it currently cannot handle:
+
 * Probabilistic error correction (e.g. using quality scores or priors about barcode abundance)
 * Variable-length barcodes
 * Barcodes where the read position is not known in advance
