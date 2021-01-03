@@ -203,6 +203,74 @@ class FastqReader:
         
         return records_read
 
+    def get_match_result(self, barcode_name, field):
+        """
+        Get barcode match results from a barcode match.
+
+        Args:
+            barcode_name (str): Name of the barcode as given in add_barcode
+            field (str): Name of the field to get data for. One of label, dist, second_best_dist, or match. (See matcha.MatchResults)
+
+        Returns:
+            numpy array with match results for most recent chunk
+        """
+        if field == "label":
+            return self.matches[barcode_name].label
+        elif field == "match":
+            return self.matches[barcode_name].match
+        elif field == "dist":
+            return self.matches[barcode_name].dist
+        elif field == "second_best_dist":
+            return self.matches[barcode_name].second_best_dist
+        else:
+            raise Exception("Invalid field name, must be one of label, dist, second_best_dist, or match")
+
+    def get_sequence_read(self, sequence_name, start=None, end=None):
+        """
+        Get raw sequence reads from an input fastq.
+
+        Args:
+            sequence_name (str): Name of sequence as given in add_sequence (typically R1, R2, I1, or I2)
+            start (int): 0-based start index for extracted bases (default to first base)
+            end (int): 0-based end index for extracted bases (default to last base)
+        
+        Returns:
+            numpy array of strings containing corresponding sequences for most recent chunk
+        """
+        reads = self._fastq_files[sequence_name].inspect_reads()[1]
+        if start is None and end is None:
+            return np.array(reads)
+        return pd.Series(reads).str.slice(start, end).values
+
+    def get_sequence_qual(self, sequence_name, start=None, end=None):
+        """
+        Get sequence quality strings from an input fastq.
+
+        Args:
+            sequence_name (str): Name of sequence as given in add_sequence (typically R1, R2, I1, or I2)
+            start (int): 0-based start index for extracted bases (default to first base)
+            end (int): 0-based end index for extracted bases (default to last base)
+        
+        Returns:
+            numpy array of strings containing corresponding qualities for most recent chunk
+        """
+        quals = self._fastq_files[sequence_name].inspect_reads()[2]
+        if start is None and end is None:
+            return np.array(quals)
+        return pd.Series(quals).str.slice(start, end).values
+
+    def get_sequence_name(self, sequence_name):
+        """
+        Get sequence name strings from an input fastq.
+
+        Args:
+            sequence_name (str): Name of sequence as given in add_sequence (typically R1, R2, I1, or I2)
+        
+        Returns:
+            numpy array of strings containing corresponding names for most recent chunk
+        """
+        return np.array(self._fastq_files[sequence_name].inspect_reads()[0])
+
     def _write_fastq(self, read_name, filter, match_indexes, matchers):
         if not self._outputs[read_name]:
             return # Don't write output unless requested
