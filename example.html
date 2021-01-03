@@ -1,0 +1,364 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Quick Example &mdash; matcha 0.0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Reference Documentation" href="reference.html" />
+    <link rel="prev" title="Matcha" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> matcha
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Example</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setup">Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#opening-files">Opening files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#barcode-sequences">Barcode Sequences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-the-matching">Running the Matching</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#full-script">Full script</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reference.html">Reference Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Change Log</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">matcha</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Quick Example</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/example.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="quick-example">
+<h1>Quick Example<a class="headerlink" href="#quick-example" title="Permalink to this headline">¶</a></h1>
+<p>This will give a quick example of matching ADT data from 10x CITE-seq dataset.
+We’ll be using the public pbmc_1k_protein_v3 dataset from 10x genomics available <a class="reference external" href="https://support.10xgenomics.com/single-cell-gene-expression/datasets/3.0.0/pbmc_1k_protein_v3">here</a>,
+downsampled to 50k reads. The full script and input dataset are available in the example folder of the github.</p>
+<p>For each read in the input files, we’ll match the sample, cell, and ADT barcodes,
+and output match information as well as the UMI sequence in a csv file.</p>
+<div class="section" id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
+<p>The read layout for this dataset is as follows:</p>
+<ul class="simple">
+<li><p>R1: 16bp cell barcode, then 12bp UMI</p></li>
+<li><p>R2: 10bp of spacer, then ADT barcode</p></li>
+<li><p>I1: 8bp sample barcode</p></li>
+</ul>
+<p>We’ll start with the required imports, these aren’t too important</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gzip</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matcha</span>
+<span class="kn">import</span> <span class="nn">tqdm</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="opening-files">
+<h2>Opening files<a class="headerlink" href="#opening-files" title="Permalink to this headline">¶</a></h2>
+<p>Next, we open our output csv file</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">output</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;pbmc_1k_protein_v3/example_matching_stats.csv&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then, we specify our input files. First we create a <a class="reference internal" href="reference.html#matcha.FastqReader" title="matcha.FastqReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">FastqReader</span></code></a> object.
+This is the object that will perform all the actual reading and barcode matching.
+Although we won’t use it in this tutorial, it can also write back out filtered fastq files,
+which you can use for demultiplexing or tagging read names with corrected single cell barcodes.</p>
+<p>We’ll make our reader use 3 threads, which will be used for reading files and
+barcode matching in parallel</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">f</span> <span class="o">=</span> <span class="n">matcha</span><span class="o">.</span><span class="n">FastqReader</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next we specify our fastq file paths and add them to our FastqReader</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">f</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="s2">&quot;R1&quot;</span><span class="p">,</span> <span class="s2">&quot;pbmc_1k_protein_v3/R1.fastq.gz&quot;</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="s2">&quot;R2&quot;</span><span class="p">,</span> <span class="s2">&quot;pbmc_1k_protein_v3/R2.fastq.gz&quot;</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="s2">&quot;I1&quot;</span><span class="p">,</span> <span class="s2">&quot;pbmc_1k_protein_v3/I1.fastq.gz&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="barcode-sequences">
+<h2>Barcode Sequences<a class="headerlink" href="#barcode-sequences" title="Permalink to this headline">¶</a></h2>
+<p>Now that we’ve added our sequences to our FastqReader object, it’s time to
+specify our barcode sequences and where to find them in each read. Matcha has
+two types of matching classess:</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="reference.html#matcha.ListMatcher" title="matcha.ListMatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListMatcher</span></code></a>, which stores each valid barcode in a list, then
+compares each read to each barcode and picks the closest. This matcher can detect
+or correct an unlimited number of errors, but it becomes very slow if it needs to
+check too many valid sequences. As a rule of thumb, this is the best choice if you
+have under 20 valid sequences, and you should probably not use it to match over 100 sequences</p></li>
+<li><p><a class="reference internal" href="reference.html#matcha.HashMatcher" title="matcha.HashMatcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">HashMatcher</span></code></a>, which stores valid barcodes in a series of hash tables to
+allow efficient lookups of partial barcodes. This matcher can efficiently match against
+a huge number of valid barcodes, but it becomes slow if you need to be able to
+correct more than about 10% of the bases in each barcode.</p></li>
+</ol>
+<p>Note that the Matcher objects only store the valid barcodes and the matching strategy.
+We specify what part of the sequence they should match against when we add them to our FastqReader object.</p>
+<p>The first barcode we’ll match is the sample barcode. In this case it’s overkill
+because our fastq files are already demultiplexed, but we’ll do it for completeness.
+Since there are only 4 valid barcode values, we’ll use a ListMatcher:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sample_barcode</span> <span class="o">=</span> <span class="n">matcha</span><span class="o">.</span><span class="n">ListMatcher</span><span class="p">(</span>
+    <span class="p">[</span><span class="s2">&quot;CAGTACTG&quot;</span><span class="p">,</span> <span class="s2">&quot;AGTAGTCT&quot;</span><span class="p">,</span> <span class="s2">&quot;GCAGTAGA&quot;</span><span class="p">,</span> <span class="s2">&quot;TTCCCGAC&quot;</span><span class="p">],</span>
+    <span class="p">[</span><span class="s2">&quot;SI-GA-A3&quot;</span><span class="p">,</span> <span class="s2">&quot;SI-GA-A3&quot;</span><span class="p">,</span> <span class="s2">&quot;SI-GA-A3&quot;</span><span class="p">,</span> <span class="s2">&quot;SI-GA-A3&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">add_barcode</span><span class="p">(</span><span class="s2">&quot;sample&quot;</span><span class="p">,</span> <span class="n">sample_barcode</span><span class="p">,</span> <span class="s2">&quot;I1&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next, we’ll add the 10x barcodes. There are 3 million valid cell barcodes, so
+we’ll need to use the HashMatcher. We’ll use the recommended parameters for single
+basepair correction, although often it is a good idea to use only exact matches in
+this data. First we read in the valid barcodes from a file, then construct the
+HashMatcher object and add it to match the start of R1.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">valid_10x_cell_barcodes</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+    <span class="s2">&quot;pbmc_1k_protein_v3/3M-february-2018.txt.gz&quot;</span><span class="p">,</span>
+    <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gene_barcode&quot;</span><span class="p">,</span> <span class="s2">&quot;feature_barcode&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">cell_barcode</span> <span class="o">=</span> <span class="n">matcha</span><span class="o">.</span><span class="n">HashMatcher</span><span class="p">(</span>
+    <span class="n">valid_10x_cell_barcodes</span><span class="p">[</span><span class="s2">&quot;feature_barcode&quot;</span><span class="p">],</span>
+    <span class="n">max_mismatches</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">subsequence_count</span><span class="o">=</span><span class="mi">2</span>
+<span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">add_barcode</span><span class="p">(</span><span class="s2">&quot;cell&quot;</span><span class="p">,</span> <span class="n">cell_barcode</span><span class="p">,</span> <span class="s2">&quot;R1&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Finally, we’ll add the ADT barcodes. Since there are only a handful we’ll use
+a ListMatcher. We’ll read the valid barcodes from a file, then add the Matcher
+to compare against R2 after skipping the first 10bp (since this 10x experiment
+used Feature Barcoding with Total-Seq B format ADTs)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">adt_barcode_list</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+    <span class="s2">&quot;pbmc_1k_protein_v3/pbmc_1k_protein_v3_feature_ref.csv&quot;</span>
+<span class="p">)</span>
+<span class="n">adt_barcode</span> <span class="o">=</span> <span class="n">matcha</span><span class="o">.</span><span class="n">ListMatcher</span><span class="p">(</span>
+    <span class="n">adt_barcode_list</span><span class="p">[</span><span class="s2">&quot;sequence&quot;</span><span class="p">],</span>
+    <span class="n">adt_barcode_list</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">add_barcode</span><span class="p">(</span><span class="s2">&quot;adt&quot;</span><span class="p">,</span> <span class="n">adt_barcode</span><span class="p">,</span> <span class="s2">&quot;R2&quot;</span><span class="p">,</span> <span class="n">match_start</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-the-matching">
+<h2>Running the Matching<a class="headerlink" href="#running-the-matching" title="Permalink to this headline">¶</a></h2>
+<p>So far, everything we’ve done has just been setup to configure how to read input
+files, and how to match barcodes. Next, we’ll do the actual reading. Matcha
+operates on chunks of reads in order to use fast numpy/pandas operations to greatly
+speed up our processing. We’ll use a chunk_size of 10,000 reads, which is sufficient
+to not bottleneck on our python for loop.</p>
+<p>All we’ll do in the loop is test which reads pass filter (in this case, just
+requiring a good match on the sample barcode). Then we’ll make a pandas DataFrame
+with the match information, and all the reads passing filter to our csv file.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">first_write</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">total</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">chunk_size</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">progress</span> <span class="o">=</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">disable</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="k">while</span> <span class="n">f</span><span class="o">.</span><span class="n">read_chunk</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">):</span>
+    <span class="n">pass_filter</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">get_match_result</span><span class="p">(</span><span class="s2">&quot;sample&quot;</span><span class="p">,</span> <span class="s2">&quot;dist&quot;</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+        <span class="s2">&quot;cell&quot;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">get_match_result</span><span class="p">(</span><span class="s2">&quot;cell&quot;</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;UMI&quot;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">get_sequence_read</span><span class="p">(</span><span class="s2">&quot;R1&quot;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">16</span><span class="p">),</span>
+        <span class="s2">&quot;ADT&quot;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">get_match_result</span><span class="p">(</span><span class="s2">&quot;adt&quot;</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;cell_dist&quot;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">get_match_result</span><span class="p">(</span><span class="s2">&quot;cell&quot;</span><span class="p">,</span> <span class="s2">&quot;dist&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;cell_second_best_dist&quot;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">get_match_result</span><span class="p">(</span><span class="s2">&quot;cell&quot;</span><span class="p">,</span> <span class="s2">&quot;second_best_dist&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;adt_dist&quot;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">get_match_result</span><span class="p">(</span><span class="s2">&quot;adt&quot;</span><span class="p">,</span> <span class="s2">&quot;dist&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;adt_second_best_dist&quot;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">get_match_result</span><span class="p">(</span><span class="s2">&quot;adt&quot;</span><span class="p">,</span> <span class="s2">&quot;second_best_dist&quot;</span><span class="p">),</span>
+    <span class="p">})</span>
+
+    <span class="n">df</span><span class="p">[</span><span class="n">pass_filter</span><span class="p">]</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+        <span class="n">output</span><span class="p">,</span>
+        <span class="n">header</span><span class="o">=</span><span class="n">first_write</span><span class="p">,</span>
+        <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">progress</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">)</span>
+    <span class="n">first_write</span><span class="o">=</span><span class="kc">False</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="full-script">
+<h2>Full script<a class="headerlink" href="#full-script" title="Permalink to this headline">¶</a></h2>
+<p>The full script for this example is available in the example folder of the <a class="reference external" href="https://github.com/GreenleafLab/matcha/tree/master/example">github</a>.
+On the example dataset, takes about a minute for me to run, most of which is spent indexing
+the 3M cell barcodes.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="reference.html" class="btn btn-neutral float-right" title="Reference Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Matcha" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Ben Parks
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

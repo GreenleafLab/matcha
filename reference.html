@@ -1,0 +1,478 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Reference Documentation &mdash; matcha 0.0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Change Log" href="changelog.html" />
+    <link rel="prev" title="Quick Example" href="example.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> matcha
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="example.html">Quick Example</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Reference Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#fastqreader">FastqReader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#listmatcher">ListMatcher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hashmatcher">HashMatcher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#matchresult">MatchResult</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Change Log</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">matcha</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Reference Documentation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/reference.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="reference-documentation">
+<h1>Reference Documentation<a class="headerlink" href="#reference-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="fastqreader">
+<h2>FastqReader<a class="headerlink" href="#fastqreader" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="matcha.FastqReader">
+<em class="property">class </em><code class="sig-prename descclassname">matcha.</code><code class="sig-name descname">FastqReader</code><span class="sig-paren">(</span><em class="sig-param">threads=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/matcha/FastqReader.html#FastqReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#matcha.FastqReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fastq reading, barcode matching, and optional export of barcoded fastqs</p>
+<dl class="attribute">
+<dt id="matcha.FastqReader.matches">
+<code class="sig-name descname">matches</code><a class="headerlink" href="#matcha.FastqReader.matches" title="Permalink to this definition">¶</a></dt>
+<dd><p>After calling read_chunk, holds the quality of matches for each barcode_name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a>, <a class="reference internal" href="#matcha.MatchResult" title="matcha.MatchResult">matcha.MatchResult</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="matcha.FastqReader.add_sequence">
+<code class="sig-name descname">add_sequence</code><span class="sig-paren">(</span><em class="sig-param">sequence_name</em>, <em class="sig-param">input_path</em>, <em class="sig-param">output_path=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/matcha/FastqReader.html#FastqReader.add_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#matcha.FastqReader.add_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add fastq input and/or output files for barcode matching</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequence_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Name of sequence (typically R1, R2, I1, or I2)</p></li>
+<li><p><strong>input_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Path of fastq file for sequence</p></li>
+<li><p><strong>output_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Path of output fastq containing matching reads (optional)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="matcha.FastqReader.add_barcode">
+<code class="sig-name descname">add_barcode</code><span class="sig-paren">(</span><em class="sig-param">barcode_name</em>, <em class="sig-param">matcher</em>, <em class="sig-param">sequence_name</em>, <em class="sig-param">match_start=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/matcha/FastqReader.html#FastqReader.add_barcode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#matcha.FastqReader.add_barcode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add barcode matcher on a sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>barcode_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Name of barcode (used to access match data from this barcode)</p></li>
+<li><p><strong>matcher</strong> (<em>Matcher</em>) – matcha.Matcher object holding the valid barcodes</p></li>
+<li><p><strong>sequence_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Name of sequence to match on (typically R1, R2, I1, or I2)</p></li>
+<li><p><strong>match_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – 0-based index to start matching from in the sequence</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="matcha.FastqReader.set_output_names">
+<code class="sig-name descname">set_output_names</code><span class="sig-paren">(</span><em class="sig-param">pattern</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/matcha/FastqReader.html#FastqReader.set_output_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#matcha.FastqReader.set_output_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set pattern for read names in the output fastq.
+Available variables for substition are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>read_name: The original read name from the input fastq</p></li>
+<li><p>Any barcodes that have been added via inputs.add_barcodes: outputs the label for best match barcode</p></li>
+<li><p>lane, tile, x, y: derived from Illumina read name position info</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Python format string.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="matcha.FastqReader.read_chunk">
+<code class="sig-name descname">read_chunk</code><span class="sig-paren">(</span><em class="sig-param">max_chunk_size</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/matcha/FastqReader.html#FastqReader.read_chunk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#matcha.FastqReader.read_chunk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read and match barcodes on a chunk of data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>max_chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Maximum number of reads to process in the chunk</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Number of records read in chunk</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="matcha.FastqReader.get_match_result">
+<code class="sig-name descname">get_match_result</code><span class="sig-paren">(</span><em class="sig-param">barcode_name</em>, <em class="sig-param">field</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/matcha/FastqReader.html#FastqReader.get_match_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#matcha.FastqReader.get_match_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get barcode match results from a barcode match.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>barcode_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Name of the barcode as given in add_barcode</p></li>
+<li><p><strong>field</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Name of the field to get data for. One of label, dist, second_best_dist, or match. (See matcha.MatchResults)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>numpy array with match results for most recent chunk</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="matcha.FastqReader.get_sequence_read">
+<code class="sig-name descname">get_sequence_read</code><span class="sig-paren">(</span><em class="sig-param">sequence_name</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/matcha/FastqReader.html#FastqReader.get_sequence_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#matcha.FastqReader.get_sequence_read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get raw sequence reads from an input fastq.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequence_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Name of sequence as given in add_sequence (typically R1, R2, I1, or I2)</p></li>
+<li><p><strong>start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – 0-based start index for extracted bases (default to first base)</p></li>
+<li><p><strong>end</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – 0-based end index for extracted bases (default to last base)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>numpy array of strings containing corresponding sequences for most recent chunk</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="matcha.FastqReader.get_sequence_qual">
+<code class="sig-name descname">get_sequence_qual</code><span class="sig-paren">(</span><em class="sig-param">sequence_name</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/matcha/FastqReader.html#FastqReader.get_sequence_qual"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#matcha.FastqReader.get_sequence_qual" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get sequence quality strings from an input fastq.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequence_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Name of sequence as given in add_sequence (typically R1, R2, I1, or I2)</p></li>
+<li><p><strong>start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – 0-based start index for extracted bases (default to first base)</p></li>
+<li><p><strong>end</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – 0-based end index for extracted bases (default to last base)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>numpy array of strings containing corresponding qualities for most recent chunk</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="matcha.FastqReader.get_sequence_name">
+<code class="sig-name descname">get_sequence_name</code><span class="sig-paren">(</span><em class="sig-param">sequence_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/matcha/FastqReader.html#FastqReader.get_sequence_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#matcha.FastqReader.get_sequence_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get sequence name strings from an input fastq.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sequence_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Name of sequence as given in add_sequence (typically R1, R2, I1, or I2)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>numpy array of strings containing corresponding names for most recent chunk</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="matcha.FastqReader.write_chunk">
+<code class="sig-name descname">write_chunk</code><span class="sig-paren">(</span><em class="sig-param">filter</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/matcha/FastqReader.html#FastqReader.write_chunk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#matcha.FastqReader.write_chunk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the current chunk of data in fastq format to output sequence files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filter</strong> (<em>array_like</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>]</em>) – Boolean array of same length as last chunk_size.
+For each element set to True, the corresponding read from the last-read chunk will be output.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="matcha.FastqReader.close">
+<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/matcha/FastqReader.html#FastqReader.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#matcha.FastqReader.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close output files</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="listmatcher">
+<h2>ListMatcher<a class="headerlink" href="#listmatcher" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="matcha.ListMatcher">
+<em class="property">class </em><code class="sig-prename descclassname">matcha.</code><code class="sig-name descname">ListMatcher</code><span class="sig-paren">(</span><em class="sig-param">sequences</em>, <em class="sig-param">labels=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/matcha/Matcher.html#ListMatcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#matcha.ListMatcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>List matcher iterates through possible matches in a list. Slow for many valid barcodes,
+but has no limits on the maximum number of mismatches. As a rule of thumb, this is the best choice if you
+have under 20 valid sequences, but you should probably not use it to match over 100 sequences</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequences</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Barcode DNA sequences</p></li>
+<li><p><strong>labels</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Labels for barcode sequences (optional)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="hashmatcher">
+<h2>HashMatcher<a class="headerlink" href="#hashmatcher" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="matcha.HashMatcher">
+<em class="property">class </em><code class="sig-prename descclassname">matcha.</code><code class="sig-name descname">HashMatcher</code><span class="sig-paren">(</span><em class="sig-param">sequences</em>, <em class="sig-param">max_mismatches</em>, <em class="sig-param">subsequence_count</em>, <em class="sig-param">labels=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/matcha/Matcher.html#HashMatcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#matcha.HashMatcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hash matcher uses hash tables of subsequences for barcode search, using the algorithm of Norouzi et al. <a class="reference external" href="https://arxiv.org/pdf/1307.2982.pdf">https://arxiv.org/pdf/1307.2982.pdf</a>.
+Fast for many valid barcodes and few possible mismatches. Increasing the max_mismatches will decrease performance. For
+10x-style barcodes (16bp, ~1M valid barcodes), recommended settings are max_mismatches=1, subsequence_count=2</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequences</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Barcode DNA sequences</p></li>
+<li><p><strong>max_mismatches</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Maximum mismatches to match against</p></li>
+<li><p><strong>subsequence_count</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of subsequence indexes to use.
+In general, use lower subsequence_count for larger number of valid labels,
+and higher subsequence_count for searching against a larger number of mismatches.</p></li>
+<li><p><strong>labels</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Labels for barcode sequences (optional)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="matchresult">
+<h2>MatchResult<a class="headerlink" href="#matchresult" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="matcha.MatchResult">
+<em class="property">class </em><code class="sig-prename descclassname">matcha.</code><code class="sig-name descname">MatchResult</code><span class="sig-paren">(</span><em class="sig-param">match</em>, <em class="sig-param">dist</em>, <em class="sig-param">second_best_dist</em>, <em class="sig-param">labels</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/matcha/Matcher.html#MatchResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#matcha.MatchResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Container type for match results.</p>
+<dl class="attribute">
+<dt id="matcha.MatchResult.label">
+<code class="sig-name descname">label</code><a class="headerlink" href="#matcha.MatchResult.label" title="Permalink to this definition">¶</a></dt>
+<dd><p>String array of labels for the best match. Only valid if labels were provided while creating the matcher object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="matcha.MatchResult.dist">
+<code class="sig-name descname">dist</code><a class="headerlink" href="#matcha.MatchResult.dist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integer array of distances (number of mismatches) to the best match</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="matcha.MatchResult.second_best_dist">
+<code class="sig-name descname">second_best_dist</code><a class="headerlink" href="#matcha.MatchResult.second_best_dist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integer array of distances (number of mismatches) to the second-best match</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="matcha.MatchResult.match">
+<code class="sig-name descname">match</code><a class="headerlink" href="#matcha.MatchResult.match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integer array of indexes of the best match in the Matcher object’s list of valid sequences</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="changelog.html" class="btn btn-neutral float-right" title="Change Log" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="example.html" class="btn btn-neutral float-left" title="Quick Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Ben Parks
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
