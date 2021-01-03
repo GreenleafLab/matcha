@@ -1,0 +1,32 @@
+matcha.FastqReader
+==================
+
+.. currentmodule:: matcha
+
+.. autoclass:: FastqReader
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~FastqReader.__init__
+      ~FastqReader.add_barcode
+      ~FastqReader.add_sequence
+      ~FastqReader.close
+      ~FastqReader.get_match_result
+      ~FastqReader.get_sequence_name
+      ~FastqReader.get_sequence_qual
+      ~FastqReader.get_sequence_read
+      ~FastqReader.read_chunk
+      ~FastqReader.set_output_names
+      ~FastqReader.write_chunk
+   
+   
+
+   
+   
+   

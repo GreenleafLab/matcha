@@ -1,0 +1,28 @@
+matcha.MatchResult
+==================
+
+.. currentmodule:: matcha
+
+.. autoclass:: MatchResult
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~MatchResult.__init__
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MatchResult.label
+   
+   

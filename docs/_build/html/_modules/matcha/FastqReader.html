@@ -1,0 +1,507 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>matcha.FastqReader &mdash; matcha 0.0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> matcha
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../example.html">Quick Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference.html">Reference Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Change Log</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">matcha</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>matcha.FastqReader</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for matcha.FastqReader</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">concurrent.futures</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">string</span> <span class="kn">import</span> <span class="n">Formatter</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">import</span> <span class="nn">_matcha</span>
+
+<div class="viewcode-block" id="FastqReader"><a class="viewcode-back" href="../../reference.html#matcha.FastqReader">[docs]</a><span class="k">class</span> <span class="nc">FastqReader</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fastq reading, barcode matching, and optional export of barcoded fastqs</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        matches (Dict[str, matcha.MatchResult]): After calling read_chunk, holds the quality of matches for each barcode_name.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">MatcherConfig</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;MatcherConfig&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;sequence_name&quot;</span><span class="p">,</span> <span class="s2">&quot;barcode_name&quot;</span><span class="p">,</span> <span class="s2">&quot;matcher&quot;</span><span class="p">,</span> <span class="s2">&quot;match_start&quot;</span><span class="p">])</span>
+    
+
+<div class="viewcode-block" id="FastqReader.__init__"><a class="viewcode-back" href="../../matcha.FastqReader.html#matcha.FastqReader.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_started_reading</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># sequence_name -&gt; input path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># sequence_name -&gt; output path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_barcodes</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># list of barcode configs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fastq_files</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># sequence_name -&gt; c++ FastqFile object</span>
+        
+        <span class="c1"># Note: Output names are calculated by alternating a literal from _pattern_literals with a </span>
+        <span class="c1"># looked up barcode match / read name field from _pattern_fields (see self.set_output_names)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name_literals</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># List of strings with any literal text to be included in output names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name_field_indexes</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># List of field indices in output pattern. -1 == read_name, -i = (i-2)th field when splitting the read name by &quot;:&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_barcode_name_to_index</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Dict from barcode_name to field_index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_output_names</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{read_name}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Dictionary of barcode_name -&gt; match results for most recent chunk</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">threads</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_executor</span> <span class="o">=</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">threads</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_map</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_map</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">))</span></div>
+        
+    
+<div class="viewcode-block" id="FastqReader.add_sequence"><a class="viewcode-back" href="../../reference.html#matcha.FastqReader.add_sequence">[docs]</a>    <span class="k">def</span> <span class="nf">add_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence_name</span><span class="p">,</span> <span class="n">input_path</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add fastq input and/or output files for barcode matching </span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sequence_name (str): Name of sequence (typically R1, R2, I1, or I2)</span>
+<span class="sd">            input_path (str): Path of fastq file for sequence</span>
+<span class="sd">            output_path (str): Path of output fastq containing matching reads (optional)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_started_reading</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Can&#39;t modify FastqReader settings after calling read_chunk&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_path</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
+            <span class="n">input_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
+            <span class="n">output_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="p">[</span><span class="n">sequence_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">sequence_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_path</span></div>
+        
+
+<div class="viewcode-block" id="FastqReader.add_barcode"><a class="viewcode-back" href="../../reference.html#matcha.FastqReader.add_barcode">[docs]</a>    <span class="k">def</span> <span class="nf">add_barcode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">barcode_name</span><span class="p">,</span> <span class="n">matcher</span><span class="p">,</span> <span class="n">sequence_name</span><span class="p">,</span> <span class="n">match_start</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add barcode matcher on a sequence</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            barcode_name (str): Name of barcode (used to access match data from this barcode)</span>
+<span class="sd">            matcher (Matcher): matcha.Matcher object holding the valid barcodes</span>
+<span class="sd">            sequence_name (str): Name of sequence to match on (typically R1, R2, I1, or I2)</span>
+<span class="sd">            match_start (int): 0-based index to start matching from in the sequence</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_started_reading</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Can&#39;t modify FastqReader settings after calling read_chunk&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">barcode_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parsed_attributes</span> <span class="ow">or</span> <span class="n">barcode_name</span> <span class="o">==</span> <span class="s2">&quot;read_name&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t add barcode with reserved name read_name, lane, tile, x, or y&quot;</span><span class="p">)</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MatcherConfig</span><span class="p">(</span><span class="n">sequence_name</span><span class="p">,</span> <span class="n">barcode_name</span><span class="p">,</span> <span class="n">matcher</span><span class="p">,</span> <span class="n">match_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_barcodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">config</span><span class="p">)</span></div>
+    
+    <span class="n">_parsed_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;lane&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;tile&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">}</span> <span class="c1">#0-based indices of attributes in bcl2fastq2 name when split by &#39;:&#39;</span>
+
+<div class="viewcode-block" id="FastqReader.set_output_names"><a class="viewcode-back" href="../../reference.html#matcha.FastqReader.set_output_names">[docs]</a>    <span class="k">def</span> <span class="nf">set_output_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set pattern for read names in the output fastq.</span>
+<span class="sd">        Available variables for substition are: </span>
+<span class="sd">            - read_name: The original read name from the input fastq</span>
+<span class="sd">            - Any barcodes that have been added via inputs.add_barcodes: outputs the label for best match barcode</span>
+<span class="sd">            - lane, tile, x, y: derived from Illumina read name position info</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            pattern (str): Python format string. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_started_reading</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Can&#39;t modify FastqReader settings after calling read_chunk&quot;</span><span class="p">)</span>
+
+        <span class="n">literals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="n">carryover_string</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">literal</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">Formatter</span><span class="p">()</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">pattern</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">field</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">literals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">carryover_string</span> <span class="o">+</span> <span class="n">literal</span><span class="p">)</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+                <span class="n">carryover_string</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">caryover_string</span> <span class="o">+=</span> <span class="n">literal</span>
+        <span class="n">literals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">carryover_string</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name_literals</span> <span class="o">=</span> <span class="n">literals</span> <span class="c1"># List of strings with any literal text to be included in output names</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name_field_indexes</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># List of field indices in output pattern. -1 == read_name, -i = (i-2)th field when splitting the read name by &quot;:&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_barcode_name_to_index</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Dict from barcode_name to field_index</span>
+
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">f</span> <span class="o">==</span> <span class="s2">&quot;read_name&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_name_field_indexes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parsed_attributes</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_name_field_indexes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_parsed_attributes</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">f</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_barcode_name_to_index</span><span class="p">:</span>
+                    <span class="n">new_idx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_barcode_name_to_index</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">default</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_barcode_name_to_index</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_idx</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_name_field_indexes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_barcode_name_to_index</span><span class="p">[</span><span class="n">f</span><span class="p">])</span></div>
+        
+    <span class="k">def</span> <span class="nf">_validate_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate that the configuration is consistent: </span>
+<span class="sd">            - Barcodes rely only on valid sequence names</span>
+<span class="sd">            - Output pattern relies only on valid barcode names</span>
+
+<span class="sd">        Call when starting reading (later calls are no-ops)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Only validate if we have not yet started reading</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_started_reading</span><span class="p">:</span>
+            <span class="k">return</span>
+    
+        <span class="c1"># Matchers rely only on valid sequence names</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_barcodes</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">m</span><span class="o">.</span><span class="n">sequence_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span>
+
+        <span class="c1"># Output pattern relies only on valid barcode names</span>
+        <span class="n">barcode_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">barcode_name</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_barcodes</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_barcode_name_to_index</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">barcode_names</span> <span class="ow">or</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parsed_attributes</span> <span class="ow">or</span> <span class="n">var</span> <span class="o">==</span> <span class="s2">&quot;read_name&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_cpp_objects</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_started_reading</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">_init_cpp_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">read_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="p">:</span>
+            <span class="n">fastq_file</span> <span class="o">=</span> <span class="n">_matcha</span><span class="o">.</span><span class="n">FastqFile</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="p">[</span><span class="n">read_name</span><span class="p">],</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">_name_literals</span><span class="p">,</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">_name_field_indexes</span><span class="p">,</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">read_name</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fastq_files</span><span class="p">[</span><span class="n">read_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">fastq_file</span>
+    
+    <span class="k">def</span> <span class="nf">_read_fastq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence_name</span><span class="p">,</span> <span class="n">max_chunk_size</span><span class="p">):</span>
+        <span class="n">fastq_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fastq_files</span><span class="p">[</span><span class="n">sequence_name</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">fastq_file</span><span class="o">.</span><span class="n">read_chunk</span><span class="p">(</span><span class="n">max_chunk_size</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_match_barcode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">barcode</span><span class="p">):</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">barcode</span>
+        <span class="n">fastq_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fastq_files</span><span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">sequence_name</span><span class="p">]</span>
+        <span class="n">match_results</span> <span class="o">=</span> <span class="n">fastq_file</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">_matcher</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">match_start</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">match_start</span> <span class="o">+</span> <span class="n">b</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">sequence_length</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matches</span><span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">barcode_name</span><span class="p">]</span> <span class="o">=</span>  <span class="n">b</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">process_matches</span><span class="p">(</span><span class="n">match_results</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FastqReader.read_chunk"><a class="viewcode-back" href="../../reference.html#matcha.FastqReader.read_chunk">[docs]</a>    <span class="k">def</span> <span class="nf">read_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_chunk_size</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read and match barcodes on a chunk of data </span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            max_chunk_size (int): Maximum number of reads to process in the chunk</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Number of records read in chunk</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_config</span><span class="p">()</span>
+
+        <span class="n">all_records_read</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_read_fastq</span><span class="p">,</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fastq_files</span><span class="p">,</span> 
+            <span class="n">itertools</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">max_chunk_size</span><span class="p">))</span>
+        <span class="n">all_records_read</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">all_records_read</span><span class="p">)</span>
+
+        <span class="n">records_read</span> <span class="o">=</span> <span class="n">all_records_read</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">r</span> <span class="o">!=</span> <span class="n">records_read</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">all_records_read</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unequal number of records read from input fastq files&quot;</span><span class="p">)</span> 
+        
+        <span class="k">if</span> <span class="n">records_read</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_match_barcode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_barcodes</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">records_read</span></div>
+
+<div class="viewcode-block" id="FastqReader.get_match_result"><a class="viewcode-back" href="../../reference.html#matcha.FastqReader.get_match_result">[docs]</a>    <span class="k">def</span> <span class="nf">get_match_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">barcode_name</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get barcode match results from a barcode match.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            barcode_name (str): Name of the barcode as given in add_barcode</span>
+<span class="sd">            field (str): Name of the field to get data for. One of label, dist, second_best_dist, or match. (See matcha.MatchResults)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            numpy array with match results for most recent chunk</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">field</span> <span class="o">==</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span><span class="p">[</span><span class="n">barcode_name</span><span class="p">]</span><span class="o">.</span><span class="n">label</span>
+        <span class="k">elif</span> <span class="n">field</span> <span class="o">==</span> <span class="s2">&quot;match&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span><span class="p">[</span><span class="n">barcode_name</span><span class="p">]</span><span class="o">.</span><span class="n">match</span>
+        <span class="k">elif</span> <span class="n">field</span> <span class="o">==</span> <span class="s2">&quot;dist&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span><span class="p">[</span><span class="n">barcode_name</span><span class="p">]</span><span class="o">.</span><span class="n">dist</span>
+        <span class="k">elif</span> <span class="n">field</span> <span class="o">==</span> <span class="s2">&quot;second_best_dist&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span><span class="p">[</span><span class="n">barcode_name</span><span class="p">]</span><span class="o">.</span><span class="n">second_best_dist</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid field name, must be one of label, dist, second_best_dist, or match&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FastqReader.get_sequence_read"><a class="viewcode-back" href="../../reference.html#matcha.FastqReader.get_sequence_read">[docs]</a>    <span class="k">def</span> <span class="nf">get_sequence_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence_name</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get raw sequence reads from an input fastq.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sequence_name (str): Name of sequence as given in add_sequence (typically R1, R2, I1, or I2)</span>
+<span class="sd">            start (int): 0-based start index for extracted bases (default to first base)</span>
+<span class="sd">            end (int): 0-based end index for extracted bases (default to last base)</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            numpy array of strings containing corresponding sequences for most recent chunk</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">reads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fastq_files</span><span class="p">[</span><span class="n">sequence_name</span><span class="p">]</span><span class="o">.</span><span class="n">inspect_reads</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">reads</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">reads</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span><span class="o">.</span><span class="n">values</span></div>
+
+<div class="viewcode-block" id="FastqReader.get_sequence_qual"><a class="viewcode-back" href="../../reference.html#matcha.FastqReader.get_sequence_qual">[docs]</a>    <span class="k">def</span> <span class="nf">get_sequence_qual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence_name</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get sequence quality strings from an input fastq.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sequence_name (str): Name of sequence as given in add_sequence (typically R1, R2, I1, or I2)</span>
+<span class="sd">            start (int): 0-based start index for extracted bases (default to first base)</span>
+<span class="sd">            end (int): 0-based end index for extracted bases (default to last base)</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            numpy array of strings containing corresponding qualities for most recent chunk</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">quals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fastq_files</span><span class="p">[</span><span class="n">sequence_name</span><span class="p">]</span><span class="o">.</span><span class="n">inspect_reads</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">quals</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">quals</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span><span class="o">.</span><span class="n">values</span></div>
+
+<div class="viewcode-block" id="FastqReader.get_sequence_name"><a class="viewcode-back" href="../../reference.html#matcha.FastqReader.get_sequence_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_sequence_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get sequence name strings from an input fastq.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sequence_name (str): Name of sequence as given in add_sequence (typically R1, R2, I1, or I2)</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            numpy array of strings containing corresponding names for most recent chunk</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fastq_files</span><span class="p">[</span><span class="n">sequence_name</span><span class="p">]</span><span class="o">.</span><span class="n">inspect_reads</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span></div>
+
+    <span class="k">def</span> <span class="nf">_write_fastq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">read_name</span><span class="p">,</span> <span class="nb">filter</span><span class="p">,</span> <span class="n">match_indexes</span><span class="p">,</span> <span class="n">matchers</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">read_name</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="c1"># Don&#39;t write output unless requested</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fastq_files</span><span class="p">[</span><span class="n">read_name</span><span class="p">]</span><span class="o">.</span><span class="n">write_chunk</span><span class="p">(</span><span class="nb">filter</span><span class="p">,</span> <span class="n">match_indexes</span><span class="p">,</span> <span class="n">matchers</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="FastqReader.write_chunk"><a class="viewcode-back" href="../../reference.html#matcha.FastqReader.write_chunk">[docs]</a>    <span class="k">def</span> <span class="nf">write_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">filter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write the current chunk of data in fastq format to output sequence files.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filter (array_like[bool]): Boolean array of same length as last chunk_size. </span>
+<span class="sd">                For each element set to True, the corresponding read from the last-read chunk will be output.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If all reads are masked, return instantly</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="nb">filter</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Lookup barcode names if needed</span>
+        <span class="n">field_count</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_barcode_name_to_index</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">default</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">match_indexes</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">field_count</span>
+        <span class="n">matchers</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">field_count</span>
+
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_barcodes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">barcode_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_barcode_name_to_index</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_barcode_name_to_index</span><span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">barcode_name</span><span class="p">]</span>
+            <span class="n">matchers</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">_matcher</span>
+            <span class="n">match_indexes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span><span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">barcode_name</span><span class="p">]</span><span class="o">.</span><span class="n">match</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_fastq</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fastq_files</span><span class="p">,</span>
+            <span class="n">itertools</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="nb">filter</span><span class="p">),</span>
+            <span class="n">itertools</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">match_indexes</span><span class="p">),</span>
+            <span class="n">itertools</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">matchers</span><span class="p">)</span>
+        <span class="p">)</span></div>
+    
+<div class="viewcode-block" id="FastqReader.close"><a class="viewcode-back" href="../../reference.html#matcha.FastqReader.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close output files&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fastq_files</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Ben Parks
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
