@@ -67,7 +67,7 @@ void Matcher::matchRaw(py::array_t<uint64_t> seqs, py::array_t<uint64_t> output)
 
     auto seq = seqs.unchecked<2>();
     auto res = output.mutable_unchecked<2>();
-    for (size_t i = 0; i < seq.shape(1); i++) {
+    for (auto i = 0; i < seq.shape(1); i++) {
         uint64_t qual = 0;
         res(0,i) = match(seq(0,i), seq(1,i), qual);
         res(1,i) = qual;
