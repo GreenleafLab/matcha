@@ -1,19 +1,18 @@
+import gzip
 from pathlib import Path
+
 
 import pytest
 import matcha
 
+from .utils import hamming_dist, random_sequence
 
-
-def test_io(tmpdir):
-    tmpdir = Path(str(tmpdir))
-    f = matcha.FastqReader()
-    for read in ["R1", "R2", "I1", "I2"]:
-        path = tmpdir / read
-        path.write_text(test_data[read])
-        out_path = tmpdir / (read + "_out")
-        f.add_sequence(read, path, out_path)
-
+def run_matcher(f):
+    """Setup and run a matcher for the fastq data
+    
+    Args:
+        f (FastqReader): FastqReader handler with the relevant reads
+    """
     # Make it so reads 1 and 4 match. Read 1 with 1 mismatch in the barcode 
     i5_matcher = matcha.ListMatcher(["TCCGAGCC", "ACAGGCGC"], ["i5_1", "i5_4"])
     i7_matcher = matcha.ListMatcher(["GCCAATTC", "CTGTATTA"], ["i7_1", "i7_4"])
@@ -27,6 +26,18 @@ def test_io(tmpdir):
         f.write_chunk(matches)
     f.close()
 
+
+def test_multi_file_io(tmpdir):
+    tmpdir = Path(str(tmpdir))
+    f = matcha.FastqReader()
+    for read in ["R1", "R2", "I1", "I2"]:
+        path = tmpdir / read
+        path.write_text(test_data[read])
+        out_path = tmpdir / (read + "_out")
+        f.add_sequence(read, path, out_path)
+
+    run_matcher(f)
+
     for read in ["R1", "R2", "I1", "I2"]:
         output = (tmpdir / (read + "_out")).read_text().splitlines()
         input_text = test_data[read].splitlines()
@@ -38,7 +49,49 @@ def test_io(tmpdir):
         assert output[0] == f"@i5_1+i7_1:{input_text[0][1:]}"
         assert output[4] == f"@i5_4+i7_4:{input_text[12][1:]}"
 
-    
+def test_threaded_io(tmpdir):
+    tmpdir = Path(str(tmpdir))
+    f = matcha.FastqReader(threads=4)
+    for read in ["R1", "R2", "I1", "I2"]:
+        path = tmpdir / read
+        path.write_text(test_data[read])
+        out_path = tmpdir / (read + "_out")
+        f.add_sequence(read, path, out_path)
+
+    run_matcher(f)
+
+    for read in ["R1", "R2", "I1", "I2"]:
+        output = (tmpdir / (read + "_out")).read_text().splitlines()
+        input_text = test_data[read].splitlines()
+
+        # Check that sequence and quality are preserved
+        assert output[1:4] == input_text[1:4]
+        assert output[5:8] == input_text[13:16]
+
+        assert output[0] == f"@i5_1+i7_1:{input_text[0][1:]}"
+        assert output[4] == f"@i5_4+i7_4:{input_text[12][1:]}"
+
+def test_gzip_io(tmpdir):
+    tmpdir = Path(str(tmpdir))
+    f = matcha.FastqReader()
+    for read in ["R1", "R2", "I1", "I2"]:
+        path = tmpdir / read
+        gzip.open(path, "wt").write(test_data[read])
+        out_path = tmpdir / (read + "_out.gz")
+        f.add_sequence(read, path, out_path)
+
+    run_matcher(f)
+
+    for read in ["R1", "R2", "I1", "I2"]:
+        output = gzip.open(tmpdir / (read + "_out.gz"), 'rt').read().splitlines()
+        input_text = test_data[read].splitlines()
+
+        # Check that sequence and quality are preserved
+        assert output[1:4] == input_text[1:4]
+        assert output[5:8] == input_text[13:16]
+
+        assert output[0] == f"@i5_1+i7_1:{input_text[0][1:]}"
+        assert output[4] == f"@i5_4+i7_4:{input_text[12][1:]}"
 
 test_data = {}
 test_data["I1"] = """\
