@@ -3,7 +3,7 @@ from setuptools.command.build_ext import build_ext
 import sys
 import setuptools
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 
 class get_pybind_include(object):
@@ -111,12 +111,12 @@ setup(
     version=__version__,
     author='Ben Parks',
     author_email='bparks@stanford.edu',
-    #url='https://github.com/pybind/python_example',
+    url='https://github.com/GreenleafLab/matcha',
     description='Fast barcode matching C++ library with python bindings',
     long_description='',
     ext_modules=ext_modules,
     packages=["matcha"],
-    install_requires=['pybind11>=2.4'],
+    install_requires=['pybind11>=2.4', 'numpy', 'pandas'],
     setup_requires=['pybind11>=2.4'],
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,
