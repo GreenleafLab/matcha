@@ -6,7 +6,7 @@ It supports multi-threaded fastq input and output, and allows for arbitrary user
 
 Installation
 -------------
-Requirements: Python >=3.5, pybind11
+Requirements: Python >=3.5, pybind11, numpy, pandas
 
 Installation can be done through pip using the github source::
 

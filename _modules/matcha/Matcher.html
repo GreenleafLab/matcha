@@ -211,9 +211,9 @@
 <span class="sd">        sequences (List[str]): Barcode DNA sequences</span>
 <span class="sd">        labels (List[str]): Labels for barcode sequences (optional)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="ListMatcher.__init__"><a class="viewcode-back" href="../../matcha.ListMatcher.html#matcha.ListMatcher.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequences</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>   
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequences</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>   
         <span class="n">_matcher</span> <span class="o">=</span> <span class="n">_matcha</span><span class="o">.</span><span class="n">ListMatcher</span><span class="p">()</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sequences</span><span class="p">,</span> <span class="n">_matcher</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>  </div></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sequences</span><span class="p">,</span> <span class="n">_matcher</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>  </div>
 
 <div class="viewcode-block" id="MatchResult"><a class="viewcode-back" href="../../reference.html#matcha.MatchResult">[docs]</a><span class="k">class</span> <span class="nc">MatchResult</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -225,11 +225,11 @@
 <span class="sd">        second_best_dist (numpy.ndarray): Integer array of distances (number of mismatches) to the second-best match</span>
 <span class="sd">        match (numpy.ndarray): Integer array of indexes of the best match in the Matcher object&#39;s list of valid sequences</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="MatchResult.__init__"><a class="viewcode-back" href="../../matcha.MatchResult.html#matcha.MatchResult.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">match</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">second_best_dist</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">match</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">second_best_dist</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">match</span> <span class="o">=</span> <span class="n">match</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dist</span> <span class="o">=</span> <span class="n">dist</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">second_best_dist</span> <span class="o">=</span> <span class="n">second_best_dist</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span> <span class="o">=</span> <span class="n">labels</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span> <span class="o">=</span> <span class="n">labels</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -250,7 +250,7 @@
 <span class="sd">        labels (List[str]): Labels for barcode sequences (optional)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="HashMatcher.__init__"><a class="viewcode-back" href="../../matcha.HashMatcher.html#matcha.HashMatcher.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequences</span><span class="p">,</span> <span class="n">max_mismatches</span><span class="p">,</span> <span class="n">subsequence_count</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>   
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequences</span><span class="p">,</span> <span class="n">max_mismatches</span><span class="p">,</span> <span class="n">subsequence_count</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>   
         <span class="c1"># Get masks for extracting subsequences</span>
         <span class="c1"># Stripe base indexes for each subsequence, in case there are contiguous chunks of similarity in valid barcodes</span>
         <span class="n">valid_bases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sequences</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
@@ -268,7 +268,7 @@
             <span class="n">mismatch_masks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_mismatch_masks</span><span class="p">(</span><span class="n">subsequence_indexes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">mismatch_range</span><span class="p">))</span>
 
         <span class="n">_matcher</span> <span class="o">=</span> <span class="n">_matcha</span><span class="o">.</span><span class="n">HashMatcher</span><span class="p">(</span><span class="n">subsequence_masks</span><span class="p">,</span> <span class="n">mismatch_masks</span><span class="p">,</span> <span class="n">max_mismatches</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sequences</span><span class="p">,</span> <span class="n">_matcher</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>  </div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sequences</span><span class="p">,</span> <span class="n">_matcher</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>  
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_mask</span><span class="p">(</span><span class="n">indexes</span><span class="p">):</span>
